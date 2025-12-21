@@ -1,0 +1,620 @@
+/* ============================================================================
+   NAVIGATION: GitHub-Inspired Navbar & Navigation Patterns
+   ============================================================================
+   Fixed Top Navbar with subtle border
+   Link Underlines on Hover
+   Dropdown Support for Secondary Navigation
+   Breadcrumbs for Wayfinding (Phase 2+)
+   ============================================================================ */
+
+/* ============================================================================
+   NAVBAR: Fixed top navigation with brand and links
+   ============================================================================
+   Background: Secondary background color
+   Border: Bottom border for visual separation
+   Position: Fixed, full width
+   Z-Index: 999 (below theme toggle at 1000)
+   ============================================================================ */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-default);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  box-shadow: 0 1px 3px var(--shadow-sm);
+  transition: var(--transition-base);
+}
+
+/* Compensate body for fixed navbar */
+body {
+  padding-top: 60px;
+}
+
+/* ============================================================================
+   NAVBAR BRAND: Logo/Identity
+   ============================================================================ */
+
+.navbar-brand {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+  transition: var(--transition-base);
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand:hover {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+/* ============================================================================
+   NAVBAR LINKS: Navigation items
+   ============================================================================
+   Font Size: 0.9375rem
+   Padding: Compact (0.5rem 1rem)
+   Margin: Gap between items
+   Underline: On hover only
+   Active State: Underline + primary color
+   ============================================================================ */
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.navbar-nav .nav-item {
+  position: relative;
+}
+
+/* ============================================================================
+   NAVBAR LINKS: Navigation items
+   ============================================================================
+   Font Size: 0.9375rem
+   Padding: Compact (0.5rem 1rem)
+   Margin: Gap between items
+   Underline: On hover only
+   Active State: Underline + primary color
+   ============================================================================ */
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.navbar-nav .nav-item {
+  position: relative;
+}
+
+.navbar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: var(--transition-base);
+  position: relative;
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--color-primary);
+}
+
+/* Enhanced hover for navigation: subtle background and lift */
+.navbar-nav .nav-link:hover {
+  color: var(--color-primary);
+  background-color: rgba(3,102,214,0.08);
+  border-radius: 6px;
+  transform: none;
+}
+
+.navbar-nav .nav-link:focus-visible {
+  outline: 3px solid rgba(3,102,214,0.12);
+  outline-offset: 2px;
+}
+
+.navbar-nav .nav-link.active {
+  color: var(--color-primary);
+  background-color: rgba(3,102,214,0.1);
+  border-radius: 6px;
+}
+
+.navbar-nav .nav-link.active:hover {
+  background-color: rgba(3,102,214,0.1);
+  transform: none;
+}
+
+/* Underline matching text width: apply pseudo-element to the span inside the link */
+.navbar-nav .nav-link span {
+  position: relative;
+  display: inline-block;
+}
+
+.navbar-nav .nav-link span {
+  position: relative;
+  display: inline-block;
+}
+
+/* ============================================================================
+   DROPDOWN MENU: Secondary navigation
+   ============================================================================
+   Position: Absolute, below parent
+   Background: Secondary background
+   Border: Subtle border
+   Padding: Compact list items
+   Max Width: Prevent overflow
+   ============================================================================ */
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  position: relative;
+  padding-right: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-toggle::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(0deg);
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transition: var(--transition-fast);
+}
+
+.dropdown-toggle:hover::after,
+.dropdown-toggle[aria-expanded="true"]::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  min-width: 200px;
+  box-shadow: 0 4px 12px var(--shadow-md);
+  z-index: 1000;
+  padding: 0.5rem 0;
+}
+
+.dropdown:hover .dropdown-menu,
+.dropdown-toggle[aria-expanded="true"] + .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu .dropdown-item {
+  display: block;
+  padding: 0.75rem 1.25rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.dropdown-menu .dropdown-item:hover {
+  background-color: var(--hover-bg);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+}
+
+.dropdown-menu .dropdown-item.active {
+  background-color: var(--hover-bg);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+}
+
+/* ============================================================================
+   HAMBURGER MENU: Mobile navigation toggle
+   ============================================================================
+   Icon: Three horizontal lines
+   Animation: Smooth transition on toggle
+   ============================================================================ */
+
+.navbar-toggler {
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: var(--transition-base);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1001;
+  color: var(--text-primary);
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+.navbar-toggler:hover {
+  border-color: var(--color-primary);
+  background-color: var(--hover-bg);
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.navbar-toggler-icon {
+  display: block;
+  width: 20px;
+  height: 16px;
+  position: relative;
+}
+
+.navbar-toggler-icon::before,
+.navbar-toggler-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--text-primary);
+  transition: var(--transition-base);
+}
+
+.navbar-toggler-icon::before {
+  top: 0;
+}
+
+.navbar-toggler-icon::after {
+  bottom: 0;
+}
+
+/* ============================================================================
+   RESPONSIVE: Collapse nav into mobile menu at narrower widths
+   - Show hamburger toggle
+   - Collapse primary nav into a vertical panel
+   - Increase touch targets for accessibility
+   ============================================================================ */
+
+@media (max-width: 900px) {
+  .navbar-toggler {
+    display: inline-flex;
+  }
+
+  .navbar-nav {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    background-color: var(--bg-primary);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border: 1px solid var(--border-default);
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  .navbar-nav.active {
+    display: flex;
+    pointer-events: auto;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 0.875rem 1rem;
+    width: 100%;
+  }
+
+  body {
+    padding-top: 64px; /* slightly larger to account for touch */
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-brand {
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* ============================================================================
+   BREADCRUMBS: Wayfinding navigation
+   ============================================================================
+   Style: Horizontal list with separators
+   Font Size: 0.875rem
+   Color: Secondary text
+   Separator: Forward slash or chevron
+   ============================================================================ */
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.breadcrumbs a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+.breadcrumbs a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbs-separator {
+  color: var(--text-tertiary);
+  margin: 0 0.5rem;
+}
+
+.breadcrumbs-item.active {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ============================================================================
+   TABS: Horizontal section navigation
+   ============================================================================
+   Style: Underline indicator on active tab
+   Background: Subtle hover background
+   Border: Bottom border on active state
+   ============================================================================ */
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-fast);
+  background: none;
+  border: none;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background-color: var(--hover-bg);
+}
+
+.tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* ============================================================================
+   SIDEBAR NAVIGATION: Vertical navigation (for admin/dashboard)
+   ============================================================================
+   Position: Fixed left sidebar
+   Width: 250px
+   Background: Secondary background
+   Border: Right border
+   ============================================================================ */
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 250px;
+  height: 100vh;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-default);
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.sidebar-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar-nav .nav-item {
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: var(--transition-fast);
+  font-weight: 500;
+}
+
+.sidebar-nav .nav-link:hover {
+  background-color: var(--hover-bg);
+  color: var(--color-primary);
+}
+
+.sidebar-nav .nav-link.active {
+  background-color: var(--hover-bg);
+  color: var(--color-primary);
+  border-left: 3px solid var(--color-primary);
+  padding-left: calc(1rem - 3px);
+}
+
+.sidebar-nav .nav-link i {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   RESPONSIVE NAVIGATION
+   ============================================================================
+   Tablet (768px): Adjust spacing
+   Mobile (480px): Toggle hamburger menu, collapse navbar
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 1rem;
+    gap: 1rem;
+  }
+
+  .navbar-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-default);
+    border-radius: 0;
+    box-shadow: 0 4px 12px var(--shadow-md);
+    padding: 0.5rem 0;
+    z-index: 1000;
+  }
+
+  .navbar-nav.active {
+    display: flex;
+  }
+
+  .navbar-nav .nav-item {
+    width: 100%;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 0.75rem 1rem;
+    justify-content: space-between;
+  }
+
+  .navbar-nav .nav-link::after {
+    content: '' !important;
+    position: static !important;
+    height: auto !important;
+    width: auto !important;
+    background-color: transparent !important;
+  }
+
+  .navbar-nav .nav-link:hover::after {
+    background-color: transparent !important;
+  }
+
+  .navbar-toggler {
+    display: block;
+  }
+
+  .dropdown-menu {
+    position: static;
+    display: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: var(--hover-bg);
+    border-top: 1px solid var(--border-default);
+    margin-top: 0;
+    padding: 0.5rem 0;
+  }
+
+  .dropdown:hover .dropdown-menu {
+    display: none;
+  }
+
+  .dropdown-toggle[aria-expanded="true"] + .dropdown-menu {
+    display: block;
+  }
+
+  .dropdown-menu .dropdown-item {
+    padding-left: 2.5rem;
+  }
+
+  .tabs {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid var(--border-default);
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .navbar-brand {
+    font-size: 1rem;
+  }
+
+  .breadcrumbs {
+    font-size: 0.8125rem;
+  }
+
+  .tabs {
+    margin-bottom: 1rem;
+  }
+
+  .tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
