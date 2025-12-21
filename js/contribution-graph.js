@@ -189,6 +189,83 @@ class ContributionGraph {
         return 4;
     }
 
+    /**
+     * Calculates dynamic month header positions based on month transitions in the grid.
+     * Analyzes each week column to determine where months start and how far they span.
+     * 
+     * @param {Array<Array<Date>>} grid - 2D grid of dates (weeks × days), containing Date objects or null
+     * @param {number} weeks - Total number of week columns
+     * @returns {Array<Object>} Array of {startWeek, spanWeeks, yearMonth, label}
+     */
+    getMonthHeaderPositions(grid, weeks) {
+        const monthHeaders = [];
+        let lastYearMonth = null;
+
+        for (let w = 0; w < weeks; w++) {
+            // Collect all non-null dates in this week column
+            const columnDates = grid[w].filter(d => d !== null);
+            if (columnDates.length === 0) continue;
+
+            // Get the first date's month (represents the column's month identity)
+            const firstDateInColumn = columnDates[0];
+            const year = firstDateInColumn.getFullYear();
+            const month = String(firstDateInColumn.getMonth() + 1).padStart(2, '0');
+            const yearMonth = `${year}-${month}`;
+
+            // If month changed from the previous column, mark a month transition
+            if (yearMonth !== lastYearMonth) {
+                // If this is a boundary column (contains both months), apply decision rule
+                let headerStartWeek = w;
+                if (monthHeaders.length > 0 && w > 0 && grid[w - 1].some(d => d !== null)) {
+                    // Count days from previous month vs. current month in this column
+                    const prevColumnLastDate = grid[w - 1].filter(d => d !== null).pop();
+                    if (prevColumnLastDate) {
+                        const prevYearMonth = `${prevColumnLastDate.getFullYear()}-${String(prevColumnLastDate.getMonth() + 1).padStart(2, '0')}`;
+                        if (prevYearMonth !== yearMonth) {
+                            // This is a boundary: count days from prev month vs new month in column w
+                            const daysFromPrevMonth = columnDates.filter(d => {
+                                const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                                return ym === prevYearMonth;
+                            }).length;
+                            const daysFromNewMonth = columnDates.filter(d => {
+                                const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                                return ym === yearMonth;
+                            }).length;
+
+                            // Decision: if new month > prev month, start here; else start next column
+                            if (daysFromNewMonth <= daysFromPrevMonth) {
+                                headerStartWeek = w + 1; // Defer to next column
+                            }
+                        }
+                    }
+                }
+
+                // Close the previous month header with calculated span
+                if (monthHeaders.length > 0) {
+                    monthHeaders[monthHeaders.length - 1].spanWeeks = headerStartWeek - monthHeaders[monthHeaders.length - 1].startWeek;
+                }
+
+                // Start a new month header (span will be calculated when the next month is found or at the end)
+                const label = firstDateInColumn.toLocaleString(undefined, { month: 'short' });
+                monthHeaders.push({
+                    startWeek: headerStartWeek,
+                    spanWeeks: 0, // Placeholder; calculated when next month is found
+                    yearMonth,
+                    label
+                });
+
+                lastYearMonth = yearMonth;
+            }
+        }
+
+        // Finalize the last month header's span
+        if (monthHeaders.length > 0) {
+            monthHeaders[monthHeaders.length - 1].spanWeeks = weeks - monthHeaders[monthHeaders.length - 1].startWeek;
+        }
+
+        return monthHeaders;
+    }
+
     render() {
         if (!this.container) return;
         this.container.innerHTML = '';
@@ -260,83 +337,18 @@ class ContributionGraph {
         monthsRow.style.gridTemplateColumns = `repeat(${weeks}, 12px)`;
         monthsRow.style.columnGap = '4px';
 
-        // Build per-column statistics to determine month header starts and spans
-        const colStats = Array.from({ length: weeks }, () => ({ counts: {}, dates: [], hasDay1: false, day1Key: null }));
-        for (let w = 0; w < weeks; w++) {
-            const columnDates = grid[w].filter(d => d);
-            for (const dt of columnDates) {
-                const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
-                colStats[w].counts[key] = (colStats[w].counts[key] || 0) + 1;
-                colStats[w].dates.push(dt);
-                if (dt.getDate() === 1) {
-                    colStats[w].hasDay1 = true;
-                    colStats[w].day1Key = key;
-                }
-            }
-        }
+        // Calculate month header positions based on actual month transitions in the grid
+        const monthHeaderPositions = this.getMonthHeaderPositions(grid, weeks);
 
-        // Determine month header start positions using the day-1 rule
-        const monthStarts = [];
-        let firstColWithDate = 0;
-        while (firstColWithDate < weeks && colStats[firstColWithDate].dates.length === 0) firstColWithDate++;
-        if (firstColWithDate < weeks) {
-            const firstKey = `${colStats[firstColWithDate].dates[0].getFullYear()}-${String(colStats[firstColWithDate].dates[0].getMonth() + 1).padStart(2, '0')}`;
-            monthStarts.push({ key: firstKey, start: firstColWithDate });
-        }
-
-        const seen = new Set(monthStarts.map(s => s.key));
-        for (let w = firstColWithDate; w < weeks; w++) {
-            const cs = colStats[w];
-            if (!cs.hasDay1) continue;
-            const newKey = cs.day1Key;
-            if (seen.has(newKey)) continue;
-
-            const countNew = cs.counts[newKey] || 0;
-            let countPrev = 0;
-            for (const k in cs.counts) {
-                if (k !== newKey) countPrev += cs.counts[k];
-            }
-
-            let start = w;
-            if (!(countNew > countPrev)) {
-                start = w + 1;
-            }
-            if (start < weeks) {
-                monthStarts.push({ key: newKey, start });
-                seen.add(newKey);
-            }
-        }
-
-        monthStarts.sort((a, b) => a.start - b.start);
-
-        // Compute spans for each month header
-        const monthHeaders = [];
-        for (let i = 0; i < monthStarts.length; i++) {
-            const { key, start } = monthStarts[i];
-            if (start >= weeks) continue;
-            let span = 0;
-            for (let c = start; c < weeks; c++) {
-                if ((colStats[c].counts[key] || 0) > 0) span++;
-                else break;
-            }
-            if (span > 0) {
-                let labelDate = null;
-                for (let c = start; c < start + span; c++) {
-                    if (colStats[c].dates.length) { labelDate = colStats[c].dates[0]; break; }
-                }
-                const label = labelDate ? labelDate.toLocaleString(undefined, { month: 'short' }) : key.split('-')[1];
-                monthHeaders.push({ start, span, label });
-            }
-        }
-
-        // Render month header elements with inline grid-column placement
-        for (const mh of monthHeaders) {
+        // Render each month header at its calculated position with dynamic span
+        monthHeaderPositions.forEach(header => {
             const monthLabel = document.createElement('div');
             monthLabel.className = 'contrib-month';
-            monthLabel.textContent = mh.label;
-            monthLabel.style.gridColumn = `${mh.start + 1} / span ${mh.span}`;
+            monthLabel.textContent = header.label;
+            // Use CSS grid positioning for exact alignment: 1-indexed column number with span
+            monthLabel.style.gridColumn = `${header.startWeek + 1} / span ${header.spanWeeks}`;
             monthsRow.appendChild(monthLabel);
-        }
+        });
 
         for (let w = 0; w < weeks; w++) {
             const weekCol = document.createElement('div');

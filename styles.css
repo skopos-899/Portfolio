@@ -1037,13 +1037,15 @@ body {
   z-index: 12000;
 }
 .contrib-modal-overlay.open { display: flex; }
-.contrib-month {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  text-align: center;
-  white-space: nowrap;
-  padding: 2px 0;
-  letter-spacing: -0.01em;
+.contrib-modal {
+  width: 92%;
+  max-width: 720px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.5);
+  border: 1px solid var(--border-default);
+  padding: 1rem;
 }
 .contrib-modal-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
 .contrib-modal-title { margin:0; font-size:1.125rem; font-weight:700; }
@@ -3425,7 +3427,7 @@ h6 {
 }
 
 @media (max-width: 640px) {
-  .contrib-week { gap: 3px; width: 10px; }
+  .contrib-week { gap: 3px; }
   .contrib-day, .legend-square { width: 10px; height: 10px; border-radius: 2px; }
 }
 
@@ -3449,11 +3451,13 @@ h6 {
   align-items: flex-start;
 }
 
-/* Months row aligned above weeks (labels dynamically positioned by JS) */
+/* Months row aligned above weeks (labels every 3 weeks with exact column alignment) */
 .contrib-months {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 12px;
+  /* One grid column per week: each column matches a week column width (12px)
+     with the same gap as the calendar (4px). This makes a span of 3 columns
+     equal to the width of three week blocks. Dynamic weeks (52-54) set via CSS variable. */
+  grid-template-columns: repeat(var(--grid-weeks, 52), 12px);
   column-gap: 4px;
   margin-bottom: 0.75rem;
   align-items: center;
@@ -3484,20 +3488,10 @@ h6 {
 .contrib-day:nth-child(1) { z-index: 0; }
 
 /* Days and weeks adjustments for fade-in */
-.contrib-calendar {
-  display: flex;
-  gap: 0.25rem;
-  width: max-content;
-  align-items: flex-start;
-}
-
 .contrib-week {
   display: grid;
   grid-template-rows: repeat(7, 12px);
   gap: 4px;
-  flex: 0 0 auto;
-  width: 12px;
-  box-sizing: content-box;
 }
 
 .contrib-day {
