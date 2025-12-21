@@ -260,37 +260,82 @@ class ContributionGraph {
         monthsRow.style.gridTemplateColumns = `repeat(${weeks}, 12px)`;
         monthsRow.style.columnGap = '4px';
 
-        // Generate months labels every 3 weeks with grid-column spanning
-        // Track all seen months using YYYY-MM format to distinguish December 2024 from December 2025
-        const seenMonths = new Set();
-        for (let w = 0; w < weeks - 1; w += 3) {
-            const firstDay = grid[w].find(d => d);
-            const monthLabel = document.createElement('div');
-            monthLabel.className = 'contrib-month';
-            monthLabel.setAttribute('data-span', '3');
-
-            if (firstDay) {
-                const year = firstDay.getFullYear();
-                const month = String(firstDay.getMonth() + 1).padStart(2, '0');
-                const yearMonthKey = `${year}-${month}`;
-                if (!seenMonths.has(yearMonthKey)) {
-                    const name = firstDay.toLocaleString(undefined, { month: 'short' });
-                    monthLabel.textContent = name;
-                    seenMonths.add(yearMonthKey);
-                } else {
-                    monthLabel.textContent = '';
+        // Build per-column statistics to determine month header starts and spans
+        const colStats = Array.from({ length: weeks }, () => ({ counts: {}, dates: [], hasDay1: false, day1Key: null }));
+        for (let w = 0; w < weeks; w++) {
+            const columnDates = grid[w].filter(d => d);
+            for (const dt of columnDates) {
+                const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+                colStats[w].counts[key] = (colStats[w].counts[key] || 0) + 1;
+                colStats[w].dates.push(dt);
+                if (dt.getDate() === 1) {
+                    colStats[w].hasDay1 = true;
+                    colStats[w].day1Key = key;
                 }
-            } else {
-                monthLabel.textContent = '';
             }
-            monthsRow.appendChild(monthLabel);
         }
 
-        // Fill remaining spacing in months row to align with calendar weeks
-        while (monthsRow.children.length * 3 < weeks) {
-            const spacer = document.createElement('div');
-            spacer.className = 'contrib-month contrib-month-spacer';
-            monthsRow.appendChild(spacer);
+        // Determine month header start positions using the day-1 rule
+        const monthStarts = [];
+        let firstColWithDate = 0;
+        while (firstColWithDate < weeks && colStats[firstColWithDate].dates.length === 0) firstColWithDate++;
+        if (firstColWithDate < weeks) {
+            const firstKey = `${colStats[firstColWithDate].dates[0].getFullYear()}-${String(colStats[firstColWithDate].dates[0].getMonth() + 1).padStart(2, '0')}`;
+            monthStarts.push({ key: firstKey, start: firstColWithDate });
+        }
+
+        const seen = new Set(monthStarts.map(s => s.key));
+        for (let w = firstColWithDate; w < weeks; w++) {
+            const cs = colStats[w];
+            if (!cs.hasDay1) continue;
+            const newKey = cs.day1Key;
+            if (seen.has(newKey)) continue;
+
+            const countNew = cs.counts[newKey] || 0;
+            let countPrev = 0;
+            for (const k in cs.counts) {
+                if (k !== newKey) countPrev += cs.counts[k];
+            }
+
+            let start = w;
+            if (!(countNew > countPrev)) {
+                start = w + 1;
+            }
+            if (start < weeks) {
+                monthStarts.push({ key: newKey, start });
+                seen.add(newKey);
+            }
+        }
+
+        monthStarts.sort((a, b) => a.start - b.start);
+
+        // Compute spans for each month header
+        const monthHeaders = [];
+        for (let i = 0; i < monthStarts.length; i++) {
+            const { key, start } = monthStarts[i];
+            if (start >= weeks) continue;
+            let span = 0;
+            for (let c = start; c < weeks; c++) {
+                if ((colStats[c].counts[key] || 0) > 0) span++;
+                else break;
+            }
+            if (span > 0) {
+                let labelDate = null;
+                for (let c = start; c < start + span; c++) {
+                    if (colStats[c].dates.length) { labelDate = colStats[c].dates[0]; break; }
+                }
+                const label = labelDate ? labelDate.toLocaleString(undefined, { month: 'short' }) : key.split('-')[1];
+                monthHeaders.push({ start, span, label });
+            }
+        }
+
+        // Render month header elements with inline grid-column placement
+        for (const mh of monthHeaders) {
+            const monthLabel = document.createElement('div');
+            monthLabel.className = 'contrib-month';
+            monthLabel.textContent = mh.label;
+            monthLabel.style.gridColumn = `${mh.start + 1} / span ${mh.span}`;
+            monthsRow.appendChild(monthLabel);
         }
 
         for (let w = 0; w < weeks; w++) {
